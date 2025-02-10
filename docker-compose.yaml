@@ -1,0 +1,32 @@
+version: "3.0"
+services:
+  backend:
+    build:
+      context: ./backend
+    volumes:
+      - .:/var/www/html
+      - uploads:/var/www/html/storage/app/public
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "3000:3000"
+
+  db:
+    image: hibitdev/sqlite:latest
+    container_name: sqlite
+    hostname: sqlite.hibit
+    ports:
+      - "8191:8191"
+    volumes:
+      - ./sqlite:/db
+    command: ["tail", "-f", "/dev/null"] # Keeps the container running
+
+volumes:
+  db_data:
+  uploads:
