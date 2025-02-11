@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 
 class RpsController extends Controller
 {
-    private int $selected = 0;
+    private string $selected;
     private int $totalMatchesPlayed = 10;
     private int $totalWins = 0;
     private int $totalTies = 0;
@@ -19,9 +19,12 @@ class RpsController extends Controller
     public function store(Request $request)
     {
         try {
-            $this->selected = $request->selected();
-            $this->items = $request->items();
+            $this->selected = $request->input('selected');
+            $this->items = $request->input('items');
+            // error_log( "test");
+            // error_log( $this->selected);
             $this->picker();
+            $this->rpsWinPercentage();
         } catch (Exception $e) {
             return response()->json([
                 'data' => [],
@@ -31,42 +34,84 @@ class RpsController extends Controller
 
         return response()->json([
             'data' => [
-                'totalMatchesPlayed'=> $this->totalMatchesPlayed,
-                'totalWins'=> $this->totalWins,
-                'totalTies'=> $this->totalTies,
+                'totalNumPlayed'=> $this->totalMatchesPlayed,
+                'totalNumWins'=> $this->totalWins,
+                'totalNumTies'=> $this->totalTies,
                 'winPercentage'=> $this->winPercentage,
+                'testSelected' =>  $this->selected,
+                'testItems' =>  $this->items
             ],
             'message' => 'Succeed'
         ], JsonResponse::HTTP_OK);
     }
 
-    public function picker() {
-        if ($this->selected == 0) {
-            $randomSelected = rand(0,count($this->items) -1);
-            for ($i=1; $i < 10 ; $i++) { 
-                $move = rand(0,count($this->items) -1);
-                $this->rfsChecker($this->items[$randomSelected]->strength ,$this->items[i]->strength);
+    public function picker(): void {
+        if ($this->selected == "random") {
+            $randomSelected = rand(0,sizeof($this->items)-1);
+            for ($i=0; $i < 10 ; $i++) { 
+                $move = rand(0,sizeof($this->items)-1);
+                $this->rpsChecker($this->items[$randomSelected]['id'] ,$move);
             }
         } else {
-            for ($i=1; $i < 10 ; $i++) { 
-                $move = rand(0,count($this->items) -1);
-                $this->rfsChecker($this->selected ,$this->items[i]->strength);
+            for ($i=0; $i < 10 ; $i++) { 
+                $move = rand(0,sizeof($this->items)-1);
+                // error_log( "move");
+                // error_log($move);
+                // error_log($this->selected );
+                $this->rpsChecker($this->selected ,$move);
             }
         }
     }
 
-    public function rfsChecker($val,$val2) {
-        if($val > $val2){
+    public function rpsChecker($val,$val2): void {
+        // error_log( "val");
+        // error_log( $val);
+        $selectedData = $this->getItem($val);
+        $randomItem = $this->items[$val2]['id'];
+        // error_log("randomItem");
+        // error_log($randomItem);
+        $isStrength = $this->checkIfExist($randomItem, $selectedData['strengths']);
+        $isWeakness = $this->checkIfExist($randomItem, $selectedData['weaknesses']);
+        error_log( "isStrength-2");
+        error_log( $isStrength);
+        error_log( "isWeakness-2");
+        error_log( $isWeakness);
+    if($val === $randomItem){
+        $this->totalTies = $this->totalTies + 1;
+    }
+     if($isStrength == true && $isWeakness == false ){
             $this->totalWins = $this->totalWins + 1;
-        } else if($val < $val2){
+        } else if($isWeakness == true && $isStrength == false){
             $this->totalLoss = $this->totalLoss + 1;
         } else {
             $this->totalTies = $this->totalTies + 1;
         }
     }
 
-    public function rfsWinPercentage() {
+    public function rpsWinPercentage(): void {
         $this->winPercentage = ($this->totalWins + (0.5 * $this->totalTies)) / $this->totalMatchesPlayed;
+    }
+
+    public function checkIfExist($val, $arr): bool {
+        foreach ($arr as $key => $value) {
+           if( $value == $val ) {
+            // error_log($val);
+            // error_log($value);
+            return true;
+           }
+        }
+        return false;
+    }
+
+    public function getItem($val) {
+        foreach ($this->items as $key => $value) {
+           if( $value['id'] == $val) {
+            // error_log($val);
+            // error_log($value['id']);
+            return $value;
+           }
+        }
+
     }
 
 }
