@@ -1,7 +1,7 @@
 # Rock-Paper-Scissor Laravel11 & Nextjs15
 Starter
 ## Local Installation
-Install Docker Windows first. #https://docs.docker.com/desktop/setup/install/windows-install/
+Install Docker Windows first. https://docs.docker.com/desktop/setup/install/windows-install/
 
 ## Docker Build
 ```
