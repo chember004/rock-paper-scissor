@@ -24,7 +24,7 @@ services:
 
   frontend:
     build:
-      context: ./frontend
+      context: ./game-app
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
